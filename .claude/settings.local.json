@@ -1,7 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "mcp__supabase__list_projects"
+      "mcp__supabase__list_projects",
+      "Bash(~/.local/bin/uv run:*)"
     ]
   }
 }
