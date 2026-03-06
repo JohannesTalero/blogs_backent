@@ -1,0 +1,29 @@
+# Entorno virtual
+.venv/
+
+# Variables de entorno (NUNCA commitear)
+.env
+.env.local
+.env.production
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+dist/
+*.egg-info/
+
+# uv
+.python-version
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
