@@ -142,7 +142,7 @@ class TestUpdateBlock:
         updated = {**MOCK_BLOCK, "content_json": {"body": "Actualizado"}}
         with patch("app.blocks.router.supabase") as mock_db:
             mock_db.table.return_value.select.return_value.eq.return_value \
-                .eq.return_value.execute.return_value = MagicMock(data=[{"id": BLOCK_ID}])
+                .eq.return_value.execute.return_value = MagicMock(data=[{"id": BLOCK_ID, "type": "text"}])
             mock_db.table.return_value.update.return_value.eq.return_value \
                 .execute.return_value = MagicMock(data=[updated])
 
@@ -169,7 +169,7 @@ class TestUpdateBlock:
         updated = {**MOCK_BLOCK, "visible": False}
         with patch("app.blocks.router.supabase") as mock_db:
             mock_db.table.return_value.select.return_value.eq.return_value \
-                .eq.return_value.execute.return_value = MagicMock(data=[{"id": BLOCK_ID}])
+                .eq.return_value.execute.return_value = MagicMock(data=[{"id": BLOCK_ID, "type": "text"}])
             mock_db.table.return_value.update.return_value.eq.return_value \
                 .execute.return_value = MagicMock(data=[updated])
 
@@ -198,7 +198,7 @@ class TestDeleteBlock:
     def test_owner_deletes_block(self, client, owner_token):
         with patch("app.blocks.router.supabase") as mock_db:
             mock_db.table.return_value.select.return_value.eq.return_value \
-                .eq.return_value.execute.return_value = MagicMock(data=[{"id": BLOCK_ID}])
+                .eq.return_value.execute.return_value = MagicMock(data=[{"id": BLOCK_ID, "type": "text"}])
             mock_db.table.return_value.delete.return_value.eq.return_value \
                 .execute.return_value = MagicMock()
 

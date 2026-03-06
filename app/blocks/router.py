@@ -1,11 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from app.blocks.schemas import BlockCreate, BlockUpdate, BlockResponse
+from app.blocks.validator import validate_content_json, CONTENT_VALIDATORS
 from app.database import supabase
 from app.dependencies import get_current_user, require_role
 
 router = APIRouter(prefix="/blocks", tags=["blocks"])
 
-VALID_TYPES = {"text", "image", "card", "cta", "document"}
+VALID_TYPES = set(CONTENT_VALIDATORS.keys())
 
 
 def _assert_project_ownership(user: dict, project_id: str):
@@ -57,10 +58,12 @@ def create_block(
     if body.type not in VALID_TYPES:
         raise HTTPException(status_code=422, detail=f"Tipo inválido: {body.type}")
 
+    validated_content = validate_content_json(body.type, body.content_json)
+
     data = {
         "project_id": project_id,
         "type": body.type,
-        "content_json": body.content_json,
+        "content_json": validated_content,
         "order": body.order,
         "visible": body.visible,
     }
@@ -80,7 +83,7 @@ def update_block(
 
     existing = (
         supabase.table("blocks")
-        .select("id")
+        .select("id, type")
         .eq("id", block_id)
         .eq("project_id", project_id)
         .execute()
@@ -89,8 +92,11 @@ def update_block(
         raise HTTPException(status_code=404, detail="Bloque no encontrado")
 
     updates = body.model_dump(exclude_none=True)
+    effective_type = body.type or existing.data[0]["type"]
     if body.type and body.type not in VALID_TYPES:
         raise HTTPException(status_code=422, detail=f"Tipo inválido: {body.type}")
+    if body.content_json is not None:
+        updates["content_json"] = validate_content_json(effective_type, body.content_json)
 
     result = (
         supabase.table("blocks")
