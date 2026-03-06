@@ -78,7 +78,6 @@ class TestSectionsIsolation:
 # Aislamiento en Admins (requiere HU-007)
 # ============================================================
 
-@pytest.mark.skip(reason="Requiere HU-007: app/admins/router.py no implementado aún")
 class TestAdminsIsolation:
 
     def test_cannot_list_admins_of_other_project(self, client, owner_token):

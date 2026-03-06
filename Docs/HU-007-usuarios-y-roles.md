@@ -425,6 +425,22 @@ REFACTOR: Mover _assert_project_ownership a dependencies.py para reutilizar entr
 
 ---
 
+## Buenas Prácticas de Código
+
+### Anotaciones de tipo
+- Todos los parámetros y retornos de funciones llevan anotación explícita
+- `user` siempre anotado como `dict[str, Any]`; importar `Any` de `typing`
+- `VALID_ROLES` tipado como `set[str]`
+- `_assert_project_ownership` sustituida por `assert_project_ownership` de `dependencies.py` (centralizada en HU-006)
+- `delete_admin` retorna `-> None` explícitamente
+
+### Docstrings
+- `AdminCreate` y `AdminResponse` tienen docstring describiendo propósito y campos clave
+- Todos los endpoints tienen docstring con rol requerido, errores posibles y cualquier restricción de negocio (e.g. no eliminar propio usuario)
+- `field_validator` de password documenta las reglas SEC-009
+
+---
+
 ## Dependencias
 
 - HU-001 (tabla `admins`)

@@ -10,6 +10,7 @@ from app.limiter import limiter
 from app.auth.router import router as auth_router
 from app.blocks.router import router as blocks_router
 from app.sections.router import router as sections_router
+from app.admins.router import router as admins_router
 
 is_prod = settings.environment == "production"
 
@@ -38,6 +39,7 @@ app.add_middleware(
 app.include_router(auth_router)
 app.include_router(blocks_router)
 app.include_router(sections_router)
+app.include_router(admins_router)
 
 
 @app.get("/health")
