@@ -522,6 +522,23 @@ REFACTOR: Agrupar constantes de límites en un dict SECTION_LIMITS para mantenib
 
 ---
 
+## Buenas Prácticas de Código
+
+### Anotaciones de tipo
+- Todos los parámetros y retornos de funciones llevan anotación explícita
+- `content_json` en `validate_section_content` se anota como `dict[str, Any]`, no `dict` genérico
+- `validate_section_content` retorna `dict[str, Any]`; importar `Any` de `typing`
+- `field_validator` siempre anota parámetro y retorno; listas se anotan como `list[str]` o `list[RecomendacionItem]`
+- `_assert_project_ownership` retorna `-> None` explícitamente
+
+### Docstrings
+- Cada clase de sección (`PerfilContent`, `ToolkitContent`, etc.) tiene docstring describiendo sus campos y restricciones (SEC-007, SEC-008)
+- `SectionUpdate` y `SectionResponse` tienen docstring en el nivel de clase
+- Todos los endpoints tienen docstring con rol requerido y errores posibles
+- Estilo: una línea para lógica evidente; multilinea con `Args:` y `Returns:` cuando hay lógica no trivial
+
+---
+
 ## Dependencias
 
 - HU-001 (tabla `sections` con seed inicial)

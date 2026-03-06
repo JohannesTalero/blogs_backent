@@ -473,6 +473,22 @@ REFACTOR: Extraer _assert_project_ownership a dependencies.py (evitar duplicar e
 
 ---
 
+## Buenas Prácticas de Código
+
+### Anotaciones de tipo
+- Todos los parámetros de funciones llevan anotación explícita de tipo
+- Todas las funciones incluyen anotación de retorno (`-> ReturnType` o `-> None`)
+- `dict` genérico se escribe como `dict[str, Any]`; importar `Any` de `typing`
+- Funciones helper internas (e.g. `_assert_project_ownership`) retornan `-> None` explícitamente
+
+### Docstrings
+- Todas las clases Pydantic (`BlockCreate`, `BlockUpdate`, `BlockResponse`) tienen docstring describiendo propósito y campos clave
+- Todos los endpoints tienen docstring describiendo: comportamiento, rol requerido y errores posibles (403, 404, 422)
+- Funciones helper tienen docstring indicando su efecto (ej. qué excepción lanza y cuándo)
+- Estilo: una línea para lógica evidente; multilinea con `Args:` y `Returns:` cuando hay lógica no trivial
+
+---
+
 ## Dependencias
 
 - HU-001 completada (tabla `blocks`)

@@ -1,10 +1,12 @@
-from fastapi import APIRouter, HTTPException, Request, status
 from datetime import datetime, timedelta, timezone
+
+from fastapi import APIRouter, HTTPException, Request, status
 import jwt as pyjwt
 from passlib.context import CryptContext
+
 from app.auth.schemas import LoginRequest, TokenResponse
-from app.database import supabase
 from app.config import settings
+from app.database import supabase
 from app.limiter import limiter
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -17,7 +19,22 @@ _DUMMY_HASH = "$2b$12$/FIFBvClsci0I19RvmKH5eQjZ1XcGFHZGDlXScd44uzWmuCy.pWSW"
 
 @router.post("/login", response_model=TokenResponse)
 @limiter.limit("5/minute")
-def login(request: Request, body: LoginRequest):
+def login(request: Request, body: LoginRequest) -> TokenResponse:
+    """Autentica un administrador y retorna un JWT.
+
+    Aplica timing-safe comparison para evitar enumeración de emails (SEC-003).
+    Limitado a 5 intentos por minuto por IP (SEC-001).
+
+    Args:
+        request: Requerido por slowapi para leer la IP del cliente.
+        body: Email y contraseña del administrador.
+
+    Returns:
+        TokenResponse con el JWT firmado.
+
+    Raises:
+        HTTPException 401: Si el email no existe o la contraseña es incorrecta.
+    """
     # SEC-003: seleccionar solo campos necesarios, nunca select("*")
     result = (
         supabase.table("admins")

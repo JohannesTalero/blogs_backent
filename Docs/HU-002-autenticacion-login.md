@@ -551,6 +551,21 @@ REFACTOR: Extraer limiter a app/limiter.py para evitar importaciones circulares
 
 ---
 
+## Buenas Prácticas de Código
+
+### Anotaciones de tipo
+- Todos los parámetros de funciones llevan anotación explícita de tipo
+- Todas las funciones incluyen anotación de retorno (`-> ReturnType` o `-> None`)
+- `dict` genérico se escribe como `dict[str, Any]`; importar `Any` de `typing`
+- Callables retornados por factories se anotan como `Callable[..., dict[str, Any]]`
+
+### Docstrings
+- Todas las clases Pydantic tienen docstring describiendo su propósito y campos clave
+- Todos los endpoints y funciones públicas tienen docstring describiendo comportamiento, errores posibles y permisos requeridos
+- Estilo: una línea para lógica evidente; multilinea con `Args:` y `Returns:` cuando hay lógica no trivial
+
+---
+
 ## Dependencias
 
 - HU-001 completada (tabla `admins` con seed)

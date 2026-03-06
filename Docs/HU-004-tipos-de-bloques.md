@@ -487,6 +487,21 @@ REFACTOR: Extraer límites a constantes MODULE-level (MAX_BODY_LENGTH = 50_000, 
 
 ---
 
+## Buenas Prácticas de Código
+
+### Anotaciones de tipo
+- Todos los parámetros y retornos de funciones llevan anotación explícita
+- `content_json` en `validate_content_json` se anota como `dict[str, Any]`, no `dict` genérico
+- `validate_content_json` retorna `dict[str, Any]`; importar `Any` de `typing`
+- `field_validator` siempre anota parámetro (`v: str`) y retorno (`-> str`)
+
+### Docstrings
+- Cada clase de contenido (`TextContent`, `ImageContent`, etc.) tiene docstring describiendo sus campos y restricciones de seguridad aplicadas (SEC-005, SEC-007, SEC-008)
+- `validate_content_json` tiene docstring con `Args:` y `Returns:`
+- Estilo: una línea para lógica evidente; multilinea con `Args:` y `Returns:` cuando hay lógica no trivial
+
+---
+
 ## Dependencias
 
 - HU-003 completada (router de bloques)

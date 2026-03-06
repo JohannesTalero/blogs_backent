@@ -1,12 +1,25 @@
+from typing import Any, Callable
+
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 import jwt as pyjwt
+
 from app.config import settings
 
 bearer_scheme = HTTPBearer()
 
 
-def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme)) -> dict:
+def get_current_user(
+    credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme),
+) -> dict[str, Any]:
+    """Decodifica y valida el Bearer JWT del header Authorization.
+
+    Returns:
+        Payload del token como diccionario con claves `sub`, `project_id`, `role`, `exp`.
+
+    Raises:
+        HTTPException 401: Si el token está expirado o es inválido.
+    """
     token = credentials.credentials
     try:
         payload = pyjwt.decode(token, settings.jwt_secret, algorithms=[settings.jwt_algorithm])
@@ -17,8 +30,19 @@ def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(bearer_
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token inválido")
 
 
-def require_role(*roles: str):
-    def checker(user: dict = Depends(get_current_user)):
+def require_role(*roles: str) -> Callable[..., dict[str, Any]]:
+    """Factory de dependencia que restringe el acceso a los roles indicados.
+
+    Args:
+        *roles: Roles permitidos (e.g. "owner", "editor", "viewer").
+
+    Returns:
+        Dependencia de FastAPI que valida el rol del usuario autenticado.
+
+    Raises:
+        HTTPException 403: Si el rol del token no está entre los permitidos.
+    """
+    def checker(user: dict[str, Any] = Depends(get_current_user)) -> dict[str, Any]:
         if user.get("role") not in roles:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Permisos insuficientes")
         return user
