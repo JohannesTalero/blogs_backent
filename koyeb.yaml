@@ -1,0 +1,32 @@
+services:
+  - name: blogs-backend
+    type: web
+    instance_type: free
+    regions:
+      - was
+    git:
+      branch: main
+    build:
+      builder: buildpack
+      build_command: pip install -r requirements.txt
+    run:
+      command: uvicorn app.main:app --host 0.0.0.0 --port 8000
+    ports:
+      - port: 8000
+        protocol: http
+    env:
+      - key: SUPABASE_URL
+        secret: true
+      - key: SUPABASE_SERVICE_KEY
+        secret: true
+      - key: JWT_SECRET
+        secret: true
+      - key: JWT_EXPIRE_HOURS
+        value: "1"
+      - key: ENVIRONMENT
+        value: "production"
+    health_checks:
+      - path: /health
+        port: 8000
+        initial_delay: 5
+        period: 10
