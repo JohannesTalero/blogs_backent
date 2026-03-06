@@ -270,6 +270,18 @@ REFACTOR: Centralizar _assert_project_ownership en dependencies.py como función
 
 ---
 
+## Buenas Prácticas de Código
+
+### Anotaciones de tipo
+- `assert_project_ownership` en `dependencies.py` anota `user: dict[str, Any]`, `project_id: str` y retorna `-> None`
+- Importar `Any` de `typing` en todos los módulos que usen `dict[str, Any]`
+
+### Docstrings
+- `assert_project_ownership` tiene docstring describiendo qué valida, cuándo lanza 403 y sus args
+- Los tests de aislamiento tienen docstrings explicando el escenario y el proyecto atacante
+
+---
+
 ## Dependencias
 
 - HU-002 (JWT con `project_id` en payload)

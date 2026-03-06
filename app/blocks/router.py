@@ -5,25 +5,11 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from app.blocks.schemas import BlockCreate, BlockUpdate, BlockResponse
 from app.blocks.validator import validate_content_json, CONTENT_VALIDATORS
 from app.database import supabase
-from app.dependencies import require_role
+from app.dependencies import require_role, assert_project_ownership
 
 router = APIRouter(prefix="/blocks", tags=["blocks"])
 
 VALID_TYPES: set[str] = set(CONTENT_VALIDATORS.keys())
-
-
-def _assert_project_ownership(user: dict[str, Any], project_id: str) -> None:
-    """Verifica que el JWT corresponde al proyecto del recurso solicitado.
-
-    Args:
-        user: Payload del JWT con clave `project_id`.
-        project_id: ID del proyecto extraído de la URL.
-
-    Raises:
-        HTTPException 403: Si el project_id del token no coincide con el de la URL.
-    """
-    if user["project_id"] != project_id:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Acceso denegado")
 
 
 @router.get("/{project_id}/admin/all", response_model=list[BlockResponse])
@@ -46,7 +32,7 @@ def get_all_blocks_admin(
         HTTPException 401: Sin token.
         HTTPException 403: Token de otro proyecto o rol insuficiente.
     """
-    _assert_project_ownership(user, project_id)
+    assert_project_ownership(user, project_id)
     result = (
         supabase.table("blocks")
         .select("*")
@@ -100,7 +86,7 @@ def create_block(
         HTTPException 403: Rol insuficiente o token de otro proyecto.
         HTTPException 422: Tipo inválido o content_json no cumple el esquema.
     """
-    _assert_project_ownership(user, project_id)
+    assert_project_ownership(user, project_id)
 
     if body.type not in VALID_TYPES:
         raise HTTPException(status_code=422, detail=f"Tipo inválido: {body.type}")
@@ -144,7 +130,7 @@ def update_block(
         HTTPException 404: Bloque no encontrado en el proyecto.
         HTTPException 422: Tipo inválido o content_json no cumple el esquema.
     """
-    _assert_project_ownership(user, project_id)
+    assert_project_ownership(user, project_id)
 
     existing = (
         supabase.table("blocks")
@@ -190,7 +176,7 @@ def delete_block(
         HTTPException 403: Rol insuficiente o token de otro proyecto.
         HTTPException 404: Bloque no encontrado en el proyecto.
     """
-    _assert_project_ownership(user, project_id)
+    assert_project_ownership(user, project_id)
 
     existing = (
         supabase.table("blocks")

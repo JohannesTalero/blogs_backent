@@ -6,7 +6,7 @@ from pydantic import BaseModel
 from app.sections.schemas import SectionResponse
 from app.sections.validator import validate_section_content, VALID_SECTION_TYPES
 from app.database import supabase
-from app.dependencies import require_role
+from app.dependencies import require_role, assert_project_ownership
 
 router = APIRouter(prefix="/sections", tags=["sections"])
 
@@ -20,19 +20,6 @@ class SectionUpdate(BaseModel):
 
     content_json: dict[str, Any]
 
-
-def _assert_project_ownership(user: dict[str, Any], project_id: str) -> None:
-    """Verifica que el JWT corresponde al proyecto del recurso solicitado.
-
-    Args:
-        user: Payload del JWT con clave `project_id`.
-        project_id: ID del proyecto extraído de la URL.
-
-    Raises:
-        HTTPException 403: Si el project_id del token no coincide con el de la URL.
-    """
-    if user["project_id"] != project_id:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Acceso denegado")
 
 
 @router.get("/{project_id}", response_model=list[SectionResponse])
@@ -80,7 +67,7 @@ def update_section(
         HTTPException 404: Sección no encontrada (seed no ejecutado).
         HTTPException 422: Tipo de sección inválido o content_json no cumple el esquema.
     """
-    _assert_project_ownership(user, project_id)
+    assert_project_ownership(user, project_id)
 
     if section_type not in VALID_SECTION_TYPES:
         raise HTTPException(

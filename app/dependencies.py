@@ -9,6 +9,23 @@ from app.config import settings
 bearer_scheme = HTTPBearer()
 
 
+def assert_project_ownership(user: dict[str, Any], project_id: str) -> None:
+    """Verifica que el JWT corresponde al proyecto del recurso solicitado.
+
+    Función centralizada usada por todos los routers protegidos para garantizar
+    el aislamiento de datos entre proyectos.
+
+    Args:
+        user: Payload del JWT con clave `project_id`.
+        project_id: ID del proyecto extraído de la URL.
+
+    Raises:
+        HTTPException 403: Si el project_id del token no coincide con el de la URL.
+    """
+    if user["project_id"] != project_id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Acceso denegado")
+
+
 def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme),
 ) -> dict[str, Any]:
