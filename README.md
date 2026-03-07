@@ -2,6 +2,8 @@
 
 API REST para gestión de contenido de páginas personales. Construida con FastAPI y Supabase.
 
+**Producción:** `https://youngest-rebeca-johannestapersonal-5fbd7a80.koyeb.app`
+
 ## Stack
 
 - **FastAPI** — framework web async

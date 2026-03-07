@@ -5,11 +5,12 @@ import pytest
 from unittest.mock import patch, MagicMock
 
 PROJECT_ID = "proj-001"
+POST_ID = "post-uuid-001"
 
 MOCK_BLOCKS = [
-    {"id": "b1", "project_id": PROJECT_ID, "type": "text",
+    {"id": "b1", "post_id": POST_ID, "type": "text",
      "content_json": {"body": "Hola"}, "order": 1, "visible": True, "created_at": "2025-01-01T00:00:00"},
-    {"id": "b2", "project_id": PROJECT_ID, "type": "card",
+    {"id": "b2", "post_id": POST_ID, "type": "card",
      "content_json": {"title": "Curso", "text": "Desc", "link": None}, "order": 2,
      "visible": True, "created_at": "2025-01-01T00:00:00"},
 ]
@@ -29,12 +30,12 @@ MOCK_SECTIONS = [
 class TestPublicBlocksEndpoint:
 
     def test_no_auth_required(self, client):
-        """GET /blocks es completamente público."""
+        """GET /blocks/{post_id} es completamente público."""
         with patch("app.blocks.router.supabase") as mock_db:
             mock_db.table.return_value.select.return_value.eq.return_value \
                 .eq.return_value.order.return_value.execute.return_value \
                 = MagicMock(data=MOCK_BLOCKS)
-            response = client.get(f"/blocks/{PROJECT_ID}")
+            response = client.get(f"/blocks/{POST_ID}")
         assert response.status_code == 200
 
     def test_blocks_ordered_by_order_field(self, client):
@@ -43,7 +44,7 @@ class TestPublicBlocksEndpoint:
             mock_db.table.return_value.select.return_value.eq.return_value \
                 .eq.return_value.order.return_value.execute.return_value \
                 = MagicMock(data=MOCK_BLOCKS)
-            response = client.get(f"/blocks/{PROJECT_ID}")
+            response = client.get(f"/blocks/{POST_ID}")
         orders = [b["order"] for b in response.json()]
         assert orders == sorted(orders)
 
@@ -54,7 +55,7 @@ class TestPublicBlocksEndpoint:
             mock_db.table.return_value.select.return_value.eq.return_value \
                 .eq.return_value.order.return_value.execute.return_value \
                 = MagicMock(data=visible_only)
-            response = client.get(f"/blocks/{PROJECT_ID}")
+            response = client.get(f"/blocks/{POST_ID}")
         assert all(b["visible"] for b in response.json())
 
     def test_response_includes_required_fields(self, client):
@@ -63,11 +64,12 @@ class TestPublicBlocksEndpoint:
             mock_db.table.return_value.select.return_value.eq.return_value \
                 .eq.return_value.order.return_value.execute.return_value \
                 = MagicMock(data=MOCK_BLOCKS)
-            response = client.get(f"/blocks/{PROJECT_ID}")
+            response = client.get(f"/blocks/{POST_ID}")
         for block in response.json():
             assert "type" in block
             assert "content_json" in block
             assert "order" in block
+            assert "post_id" in block
 
 
 class TestPublicSectionsEndpoint:

@@ -12,51 +12,37 @@ router = APIRouter(prefix="/blocks", tags=["blocks"])
 VALID_TYPES: set[str] = set(CONTENT_VALIDATORS.keys())
 
 
-@router.get("/{project_id}/admin/all", response_model=list[BlockResponse])
+def _get_post_project_id(post_id: str) -> str:
+    """Obtiene el project_id del post. Lanza 404 si no existe."""
+    result = supabase.table("posts").select("project_id").eq("id", post_id).execute()
+    if not result.data:
+        raise HTTPException(status_code=404, detail="Post no encontrado")
+    return result.data[0]["project_id"]
+
+
+@router.get("/{post_id}/admin/all", response_model=list[BlockResponse])
 def get_all_blocks_admin(
-    project_id: str,
+    post_id: str,
     user: dict[str, Any] = Depends(require_role("owner", "editor", "viewer")),
 ) -> list[dict[str, Any]]:
-    """Retorna todos los bloques del proyecto, incluyendo los no visibles.
-
-    Requiere rol `owner`, `editor` o `viewer`. Usado por el panel admin.
-
-    Args:
-        project_id: ID del proyecto cuyos bloques se consultan.
-        user: Payload del JWT inyectado por `require_role`.
-
-    Returns:
-        Lista de bloques ordenados por `order` (ASC), incluyendo `visible=False`.
-
-    Raises:
-        HTTPException 401: Sin token.
-        HTTPException 403: Token de otro proyecto o rol insuficiente.
-    """
+    project_id = _get_post_project_id(post_id)
     assert_project_ownership(user, project_id)
     result = (
         supabase.table("blocks")
         .select("*")
-        .eq("project_id", project_id)
+        .eq("post_id", post_id)
         .order("order")
         .execute()
     )
     return result.data
 
 
-@router.get("/{project_id}", response_model=list[BlockResponse])
-def get_blocks(project_id: str) -> list[dict[str, Any]]:
-    """Retorna los bloques visibles del proyecto. Endpoint público sin autenticación.
-
-    Args:
-        project_id: ID del proyecto cuyos bloques se consultan.
-
-    Returns:
-        Lista de bloques con `visible=True`, ordenados por `order` (ASC).
-    """
+@router.get("/{post_id}", response_model=list[BlockResponse])
+def get_blocks(post_id: str) -> list[dict[str, Any]]:
     result = (
         supabase.table("blocks")
         .select("*")
-        .eq("project_id", project_id)
+        .eq("post_id", post_id)
         .eq("visible", True)
         .order("order")
         .execute()
@@ -64,28 +50,13 @@ def get_blocks(project_id: str) -> list[dict[str, Any]]:
     return result.data
 
 
-@router.post("/{project_id}", response_model=BlockResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/{post_id}", response_model=BlockResponse, status_code=status.HTTP_201_CREATED)
 def create_block(
-    project_id: str,
+    post_id: str,
     body: BlockCreate,
     user: dict[str, Any] = Depends(require_role("owner", "editor")),
 ) -> dict[str, Any]:
-    """Crea un nuevo bloque en el proyecto.
-
-    Requiere rol `owner` o `editor`. Valida el `content_json` según el tipo.
-
-    Args:
-        project_id: ID del proyecto donde se crea el bloque.
-        body: Datos del nuevo bloque (tipo, contenido, orden, visibilidad).
-        user: Payload del JWT inyectado por `require_role`.
-
-    Returns:
-        El bloque creado.
-
-    Raises:
-        HTTPException 403: Rol insuficiente o token de otro proyecto.
-        HTTPException 422: Tipo inválido o content_json no cumple el esquema.
-    """
+    project_id = _get_post_project_id(post_id)
     assert_project_ownership(user, project_id)
 
     if body.type not in VALID_TYPES:
@@ -94,7 +65,7 @@ def create_block(
     validated_content = validate_content_json(body.type, body.content_json)
 
     data: dict[str, Any] = {
-        "project_id": project_id,
+        "post_id": post_id,
         "type": body.type,
         "content_json": validated_content,
         "order": body.order,
@@ -104,39 +75,21 @@ def create_block(
     return result.data[0]
 
 
-@router.put("/{project_id}/{block_id}", response_model=BlockResponse)
+@router.put("/{post_id}/{block_id}", response_model=BlockResponse)
 def update_block(
-    project_id: str,
+    post_id: str,
     block_id: str,
     body: BlockUpdate,
     user: dict[str, Any] = Depends(require_role("owner", "editor")),
 ) -> dict[str, Any]:
-    """Actualiza parcialmente un bloque existente (PATCH-like via PUT).
-
-    Solo los campos enviados en el body son modificados. Si se actualiza
-    `content_json`, se revalida contra el tipo efectivo del bloque.
-
-    Args:
-        project_id: ID del proyecto al que pertenece el bloque.
-        block_id: ID del bloque a actualizar.
-        body: Campos a actualizar (todos opcionales).
-        user: Payload del JWT inyectado por `require_role`.
-
-    Returns:
-        El bloque actualizado.
-
-    Raises:
-        HTTPException 403: Rol insuficiente o token de otro proyecto.
-        HTTPException 404: Bloque no encontrado en el proyecto.
-        HTTPException 422: Tipo inválido o content_json no cumple el esquema.
-    """
+    project_id = _get_post_project_id(post_id)
     assert_project_ownership(user, project_id)
 
     existing = (
         supabase.table("blocks")
         .select("id, type")
         .eq("id", block_id)
-        .eq("project_id", project_id)
+        .eq("post_id", post_id)
         .execute()
     )
     if not existing.data:
@@ -159,30 +112,20 @@ def update_block(
     return result.data[0]
 
 
-@router.delete("/{project_id}/{block_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{post_id}/{block_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_block(
-    project_id: str,
+    post_id: str,
     block_id: str,
     user: dict[str, Any] = Depends(require_role("owner")),
 ) -> None:
-    """Elimina un bloque del proyecto. Solo disponible para `owner`.
-
-    Args:
-        project_id: ID del proyecto al que pertenece el bloque.
-        block_id: ID del bloque a eliminar.
-        user: Payload del JWT inyectado por `require_role`.
-
-    Raises:
-        HTTPException 403: Rol insuficiente o token de otro proyecto.
-        HTTPException 404: Bloque no encontrado en el proyecto.
-    """
+    project_id = _get_post_project_id(post_id)
     assert_project_ownership(user, project_id)
 
     existing = (
         supabase.table("blocks")
         .select("id")
         .eq("id", block_id)
-        .eq("project_id", project_id)
+        .eq("post_id", post_id)
         .execute()
     )
     if not existing.data:

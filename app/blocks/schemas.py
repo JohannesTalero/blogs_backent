@@ -43,7 +43,7 @@ class BlockResponse(BaseModel):
 
     Attributes:
         id: Identificador único del bloque.
-        project_id: Proyecto al que pertenece el bloque.
+        post_id: Post al que pertenece el bloque.
         type: Tipo de bloque (text | image | card | cta | document).
         content_json: Contenido estructurado y validado.
         order: Posición en la página.
@@ -52,7 +52,7 @@ class BlockResponse(BaseModel):
     """
 
     id: str
-    project_id: str
+    post_id: str
     type: str
     content_json: dict[str, Any]
     order: int

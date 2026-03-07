@@ -9,6 +9,8 @@ from app.config import settings
 from app.limiter import limiter
 from app.auth.router import router as auth_router
 from app.blocks.router import router as blocks_router
+from app.images.router import router as images_router
+from app.posts.router import router as posts_router
 from app.sections.router import router as sections_router
 from app.admins.router import router as admins_router
 
@@ -37,6 +39,8 @@ app.add_middleware(
 )
 
 app.include_router(auth_router)
+app.include_router(images_router)
+app.include_router(posts_router)
 app.include_router(blocks_router)
 app.include_router(sections_router)
 app.include_router(admins_router)
