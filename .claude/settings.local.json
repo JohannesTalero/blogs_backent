@@ -5,7 +5,9 @@
       "Bash(~/.local/bin/uv run:*)",
       "Bash(.venv/bin/pytest:*)",
       "Bash(.venv/bin/pip install:*)",
-      "Bash(.venv/bin/python:*)"
+      "Bash(.venv/bin/python:*)",
+      "mcp__supabase__list_tables",
+      "mcp__supabase__apply_migration"
     ]
   }
 }
